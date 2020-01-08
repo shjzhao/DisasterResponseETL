@@ -18,7 +18,11 @@ nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger'])
 
 
 def load_data(database_filepath):
-    # load data from database
+    """
+    load data from database
+    :param database_filepath: (str)
+    :return: (pd.Series)features, (pd.DataFrame)labels, (pd.columns)category names
+    """
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table('DisasterResponse', engine)
     X = df.message
@@ -28,18 +32,30 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
-
+    """
+    Split text into tokens.For each token: lemmatize, normalize case, and strip leading and trailing white space.
+    Return the tokens in a list!
+    :param text:(str)
+    :return:(list)
+    """
+    # tokenize text
     tokens = word_tokenize(text)
+    # initiate lemmatizer
     lemmatizer = WordNetLemmatizer()
+    # iterate through each token
     clean_tokens = []
     for tok in tokens:
+        # lemmatize, normalize case, and remove leading/trailing white space
         clean_tok = lemmatizer.lemmatize(tok).lower().strip()
         clean_tokens.append(clean_tok)
-
     return clean_tokens
 
 
 def build_model():
+    """
+    build pipeline
+    :return: (Pipeline)
+    """
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -49,7 +65,14 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-
+    """
+    Show the accuracy, precision, and recall of the tuned model.
+    :param model:(sklearn.pipeline.Pipeline)
+    :param X_test: (pd.Series)test features
+    :param Y_test:(pd.DataFrame)test labels
+    :param category_names:(pd.columns)category names
+    :return:None
+    """
     Y_pred = model.predict(X_test)
     overall_accuracy = (Y_pred == Y_test).mean().mean()
     print('Average overall accuracy {0:.2f}% \n'.format(overall_accuracy * 100))
@@ -62,6 +85,12 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
+    """
+    Export the model as a pickle file
+    :param model:(sklearn.pipeline.Pipeline)
+    :param model_filepath:(str)
+    :return:None
+    """
     with open(model_filepath, "wb") as file:
         pickle.dump(model, file)
     return
